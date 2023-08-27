@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <form>
+        <input type="file" id="my-file-input" name="file" />
+        <button id="submit-button">Submit</button>
+    </form>
+
+    <script type="text/javascript">
+        document.getElementById('submit-button').addEventListener('click', mindeeSubmit);
+
+        async function mindeeSubmit(event) {
+            event.preventDefault();
+
+            const myFileInput = document.getElementById('my-file-input');
+            const myFile = myFileInput.files[0];
+
+            if (!myFile) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('document', myFile, myFile.name);
+
+            const url = 'https://api.mindee.net/v1/products/skipper-1007/medical_presciption/v1/predict';
+            const token = 'b6e0179764e4621de5e7b5d24dd8eb07';
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Token ${token}`
+                    },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const jsonResponse = await response.json();
+                    // console.log('Response:', jsonResponse);
+                    // obj = {}
+                    // const aadharKey = jsonResponse.inference.pages[0].prediction[0];
+                    // const aadharValue = data.inference.pages[0].prediction[aadharKey].values[0].content;
+                    // const  
+                    // const aadharValue = jsonResponse?.document?.inference?.pages?.[0]?.prediction?.aadhar?.values?.[0]?.content;
+                    // console.log(aadharValue);
+                    const data = jsonResponse;
+                    const hack = {};
+                    hack['aadhar'] = data.document.inference.pages[0].prediction.aadhar.values[0].content;
+                    hack['age'] = data.document.inference.pages[0].prediction.age.values[0].content;
+                    hack['symptoms'] = data.document.inference.pages[0].prediction.symptoms.values[0].content;
+                    hack['disease'] = data.document.inference.pages[0].prediction.disease.values[0].content;
+                    hack['prescription'] = data.document.inference.pages[0].prediction.prescription.values[0].content;
+
+                    let name1 = '';
+                    for (const nameObj of data.document.inference.pages[0].prediction.name.values) {
+                        name1 += nameObj.content + ' ';
+                    }
+                    hack['name'] = name1;
+
+                    let extra_info1 = '';
+                    for (const infoObj of data.document.inference.pages[0].prediction.extra_info.values) {
+                        extra_info1 += infoObj.content + ' ';
+                    }
+                    hack['extra_info1'] = extra_info1;
+
+                    console.log(hack);
+                } else {
+                    console.error('Request failed:', response.statusText);
+                }
+            } catch (error) {
+                console.error('An error occurred:', error);
+            }
+        }
+    </script>
+</body>
+
+</html>
